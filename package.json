@@ -1,0 +1,39 @@
+{
+  "name": "dsh-download-button",
+  "version": "0.1.0",
+  "description": "Download button for delivered-file cards in DeepSeek Harness / 给交付物文件卡片加下载按钮",
+  "type": "module",
+  "main": "index.js",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maxesisnclaw/dsh-download-button.git"
+  },
+  "bugs": {
+    "url": "https://github.com/maxesisnclaw/dsh-download-button/issues"
+  },
+  "homepage": "https://github.com/maxesisnclaw/dsh-download-button#readme",
+  "keywords": [
+    "deepseek",
+    "dsh",
+    "deepseek-harness",
+    "dsh-plugin",
+    "plugin",
+    "download",
+    "file",
+    "attachment",
+    "artifact",
+    "web-ui",
+    "self-hosted"
+  ],
+  "files": [
+    "index.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "test": "node --test test/*.test.mjs"
+  }
+}
