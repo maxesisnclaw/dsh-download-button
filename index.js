@@ -44,26 +44,28 @@ const SCRIPT = `<script>
     if (!path || path[0] !== '/') return;
 
     const chinese = /打开/.test(btn.textContent || '');
-    const cs = getComputedStyle(btn);
-    const a = document.createElement('a');
-    a.className = btn.className;
-    a.href = buildHref(path);
-    a.setAttribute('download', path.split('/').pop() || 'download');
-    a.textContent = chinese ? '下载' : 'Download';
-    a.title = chinese ? '下载到本地' : 'Download this file';
-    a.style.color = cs.color;
-    a.style.backgroundColor = cs.backgroundColor;
-    a.style.font = cs.font;
-    a.style.padding = cs.padding;
-    a.style.borderRadius = cs.borderRadius;
-    a.style.border = cs.border;
-    a.style.display = cs.display;
-    a.style.alignItems = cs.alignItems;
-    a.style.justifyContent = cs.justifyContent;
-    a.style.lineHeight = cs.lineHeight;
-    a.style.cursor = 'pointer';
-    a.style.textDecoration = 'none';
-    btn.parentElement.insertBefore(a, btn);
+    // Clone the sibling action button: same element type and classes, so the look
+    // (including theme/hover rules) is identical by construction, and it lands in the
+    // action bar instead of floating over the card.
+    const clone = btn.cloneNode(false);
+    clone.removeAttribute('aria-label');
+    clone.removeAttribute('aria-expanded');
+    clone.removeAttribute('aria-haspopup');
+    clone.textContent = chinese ? '下载' : 'Download';
+    clone.title = chinese ? '下载到本地' : 'Download this file';
+    clone.style.textDecoration = 'none';
+    clone.style.cursor = 'pointer';
+    clone.addEventListener('click', (event) => {
+      event.preventDefault();
+      event.stopPropagation();
+      const link = document.createElement('a');
+      link.href = buildHref(path);
+      link.download = path.split('/').pop() || 'download';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    });
+    btn.parentElement.insertBefore(clone, btn);
     card.dataset[FLAG] = '1';
   }
 
