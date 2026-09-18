@@ -1,6 +1,6 @@
 {
   "name": "dsh-download-button",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Download button for delivered-file cards in DeepSeek Harness / 给交付物文件卡片加下载按钮",
   "type": "module",
   "main": "index.js",
@@ -33,6 +33,15 @@
     "README.zh.md",
     "LICENSE"
   ],
+  "exports": {
+    ".": "./index.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
   "scripts": {
     "test": "node --test test/*.test.mjs"
   }
