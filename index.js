@@ -19,9 +19,23 @@
  */
 export const name = 'dsh-download-button'
 
+/**
+ * dsh mounts its desktop-integration surface only when the host process can reach a
+ * display (`dsh-host-directory-picker-auto` uses exactly this rule on Linux). On a
+ * headless server the cards still render a "this host has no available desktop"
+ * notice plus a permanently disabled actions menu, which only misleads users: there is
+ * no desktop to open the file on. When that is the case we hide the notice and keep the
+ * Download button as the way out.
+ */
+const HAS_DESKTOP =
+  process.platform === 'darwin' ||
+  process.platform === 'win32' ||
+  Boolean(process.env.DISPLAY || process.env.WAYLAND_DISPLAY)
+
 const SCRIPT = `<script>
 (() => {
   const FLAG = 'dlBtnAdded';
+  const NO_DESKTOP = ${HAS_DESKTOP ? 'false' : 'true'};
   const buildHref = (p) => '/api/file?path=' + encodeURIComponent(p);
 
   // The action bar's own button carries an \`open\` CSS-module class. Fall back to its label.
@@ -72,14 +86,29 @@ const SCRIPT = `<script>
   function scan(root) {
     if (!root.querySelectorAll) return;
     root.querySelectorAll('[data-presented-file]').forEach(addButton);
+    if (NO_DESKTOP) hideDesktopNotice(root);
+  }
+
+  /**
+   * Hide the "no desktop available" notice. The group renders two different
+   * [class*=hostStatus] spans: the real error one embeds a Retry button, the notice is
+   * plain text — so only the button-less one is suppressed.
+   */
+  function hideDesktopNotice(root) {
+    const scope = root.querySelectorAll ? root : document;
+    scope.querySelectorAll('[class*="hostStatus"]').forEach((el) => {
+      if (el.querySelector('button')) return;
+      el.style.display = 'none';
+    });
   }
 
   new MutationObserver((muts) => {
     for (const m of muts) for (const n of m.addedNodes) if (n.nodeType === 1) scan(n);
+    if (NO_DESKTOP) hideDesktopNotice(document);
   }).observe(document.documentElement, { childList: true, subtree: true });
   document.addEventListener('DOMContentLoaded', () => scan(document));
   scan(document);
-  console.log('dsh-download-button: enabled download buttons on file cards');
+  console.log('dsh-download-button: enabled (download buttons' + (NO_DESKTOP ? ', headless notice hidden' : '') + ')');
 })();
 </script>`
 

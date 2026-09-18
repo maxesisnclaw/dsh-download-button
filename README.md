@@ -24,6 +24,14 @@ straight from the server to your disk.
 [ Download ] [ Open ▾ ]
 ```
 
+On a **headless host** it also hides the *"this host has no available desktop, cannot open
+file or folder"* notice. That notice exists because dsh ships a desktop-integration
+surface (open the file with a host application / reveal it in Finder·Explorer) for
+installations running on someone's own computer. A server has no such desktop, so the
+notice is only noise — the download link is the way out. Detection uses the same rule dsh
+itself uses on Linux (`DISPLAY` or `WAYLAND_DISPLAY` present); on macOS/Windows desktop
+mode nothing is hidden and the notice never appears.
+
 ## Design (why it survives upgrades)
 
 - **No vendor patching.** Nothing under `node_modules` is modified. The plugin only taps
