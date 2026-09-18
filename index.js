@@ -12,37 +12,58 @@
  * only thing missing is a download link.
  *
  * How: patch nothing. During server-side index rendering this plugin injects a small
- * script; in the browser a MutationObserver appends an `<a download>` to every
- * `[data-presented-file]` card, pointing at `/api/file?path=<abs path from the card's
- * title attribute>`. Styling is copied from the sibling button already in that card, so
- * nothing depends on bundled CSS-module hashes — it keeps working across dsh upgrades.
+ * script; in the browser a MutationObserver appends an `<a download>` to the action bar of
+ * every `[data-presented-file]` card. The anchor clones the sibling action button's
+ * computed style (so it looks like a button, not a blue link) and its label follows the
+ * interface language (`打开` → `下载`, `Open` → `Download`).
  */
 export const name = 'dsh-download-button'
 
 const SCRIPT = `<script>
 (() => {
   const FLAG = 'dlBtnAdded';
-  const BUTTON_TEXT = 'Download';
   const buildHref = (p) => '/api/file?path=' + encodeURIComponent(p);
+
+  // The action bar's own button carries an \`open\` CSS-module class. Fall back to its label.
+  // NOTE: do not fall back to [aria-label] — the card itself is covered by a full-size
+  // preview button that also has an aria-label, and grabbing it puts the link in the wrong spot.
+  function actionButton(card) {
+    const byClass = card.querySelector('button[class*="open"]');
+    if (byClass) return byClass;
+    return [...card.querySelectorAll('button')].find((b) => /^(打开|Open)$/.test((b.textContent || '').trim())) || null;
+  }
 
   function addButton(card) {
     if (card.dataset[FLAG]) return;
+    const btn = actionButton(card);
+    if (!btn || !btn.parentElement) return;
     // The card already carries the absolute path: the preview button's title is
     // resolveWorkspacePath(cwd, file.path).
     const holder = card.querySelector('[class*="cardPreview"]') || card.querySelector('[title]');
     const path = holder && holder.getAttribute('title');
     if (!path || path[0] !== '/') return;
-    const openBtn = card.querySelector('button[class*="open"], button[aria-label]');
+
+    const chinese = /打开/.test(btn.textContent || '');
+    const cs = getComputedStyle(btn);
     const a = document.createElement('a');
-    if (openBtn && openBtn.className) a.className = openBtn.className;
+    a.className = btn.className;
     a.href = buildHref(path);
     a.setAttribute('download', path.split('/').pop() || 'download');
-    a.textContent = BUTTON_TEXT;
-    a.title = 'Download this file';
-    a.style.textDecoration = 'none';
+    a.textContent = chinese ? '下载' : 'Download';
+    a.title = chinese ? '下载到本地' : 'Download this file';
+    a.style.color = cs.color;
+    a.style.backgroundColor = cs.backgroundColor;
+    a.style.font = cs.font;
+    a.style.padding = cs.padding;
+    a.style.borderRadius = cs.borderRadius;
+    a.style.border = cs.border;
+    a.style.display = cs.display;
+    a.style.alignItems = cs.alignItems;
+    a.style.justifyContent = cs.justifyContent;
+    a.style.lineHeight = cs.lineHeight;
     a.style.cursor = 'pointer';
-    const host = (openBtn && openBtn.parentElement) || card;
-    host.insertBefore(a, openBtn || null);
+    a.style.textDecoration = 'none';
+    btn.parentElement.insertBefore(a, btn);
     card.dataset[FLAG] = '1';
   }
 

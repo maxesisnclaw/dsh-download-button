@@ -1,6 +1,6 @@
 {
   "name": "dsh-download-button",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Download button for delivered-file cards in DeepSeek Harness / 给交付物文件卡片加下载按钮",
   "type": "module",
   "main": "index.js",
